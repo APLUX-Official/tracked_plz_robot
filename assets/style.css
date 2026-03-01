@@ -1,0 +1,272 @@
+:root {
+    --bg-color: #0d0d0d;
+    --panel-bg: #161616;
+    --primary-cyan: #00f2ff;
+    --primary-amber: #ffae00;
+    --danger-red: #ff3b30;
+    --text-main: #e0e0e0;
+    --btn-base: #222;
+    --btn-border: #333;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0; padding: 0;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+header {
+    height: 50px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid #222;
+    flex-shrink: 0;
+}
+.app-title { font-weight: 700; letter-spacing: 1px; color: var(--text-main); }
+.status-badge { 
+    font-size: 12px; background: #222; padding: 4px 10px; border-radius: 12px; 
+    display: flex; align-items: center; gap: 6px; border: 1px solid #333;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: 0.3s; }
+.dot.online { background: #0f0; box-shadow: 0 0 8px #0f0; }
+.dot.reconnecting { background: #ffae00; box-shadow: 0 0 8px #ffae00; animation: blink 0.6s infinite alternate; }
+@keyframes blink { from { opacity: 1; } to { opacity: 0.2; } }
+
+.dashboard {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.panel-side {
+    width: 240px;
+    display: flex; flex-direction: column; gap: 20px;
+    justify-content: center;
+    height: 100%;
+}
+
+.panel-center {
+    flex-grow: 1;
+    height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    max-width: 1200px; 
+}
+
+.video-frame {
+    width: 100%;
+    height: 100%;
+    max-height: 80vh;
+    aspect-ratio: 4/3;
+    background: #000;
+    border-radius: 12px;
+    border: 2px solid #333;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+}
+iframe { width: 100%; height: 100%; border: none; transform: scale(1.01); }
+.hud-overlay {
+    position: absolute; bottom: 10px; left: 0; right: 0;
+    text-align: center; color: rgba(255,255,255,0.8);
+    font-family: monospace; font-size: 14px;
+    text-shadow: 0 1px 3px #000;
+    pointer-events: none;
+}
+
+.control-group {
+    background: var(--panel-bg);
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 15px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.group-title {
+    font-size: 11px; color: #666; font-weight: bold; 
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;
+    display: flex; justify-content: space-between;
+}
+
+.d-pad {
+    display: grid; 
+    grid-template-columns: repeat(3, 60px); 
+    grid-template-rows: repeat(3, 50px); 
+    gap: 8px; margin: 0 auto;
+}
+.btn {
+    background: var(--btn-base); border: 1px solid var(--btn-border);
+    border-radius: 8px; color: #fff; font-size: 24px; cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
+    transition: 0.1s;
+    touch-action: manipulation;
+}
+.btn:active { background: var(--primary-cyan); color: #000; box-shadow: 0 0 15px var(--primary-cyan); border-color: transparent; }
+
+.btn-u { grid-column: 2; grid-row: 1; border-radius: 8px 8px 4px 4px; }
+.btn-l { grid-column: 1; grid-row: 2; border-radius: 8px 4px 4px 8px; }
+.btn-r { grid-column: 3; grid-row: 2; border-radius: 4px 8px 8px 4px; }
+.btn-d { grid-column: 2; grid-row: 3; border-radius: 4px 4px 8px 8px; }
+
+.btn-stop {
+    grid-column: 2; grid-row: 2;
+    background: rgba(100, 0, 0, 0.5);
+    border: 1px solid var(--danger-red);
+    color: var(--danger-red);
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+.btn-stop:active {
+    background: var(--danger-red);
+    color: #fff;
+    box-shadow: 0 0 15px var(--danger-red);
+}
+
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 30px; cursor: pointer; margin: 5px 0; }
+input[type=range]:focus { outline: none; }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #222; border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); border: 1px solid #333; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 22px; width: 22px; border-radius: 50%; margin-top: -8px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); border: 2px solid #000; }
+.slider-speed::-webkit-slider-runnable-track { background: linear-gradient(90deg, #332200, #664400); }
+.slider-speed::-webkit-slider-thumb { background: var(--primary-amber); box-shadow: 0 0 10px var(--primary-amber); border-color: #332200; }
+.slider-gimbal::-webkit-slider-runnable-track { background: linear-gradient(90deg, #002233, #004466); }
+.slider-gimbal::-webkit-slider-thumb { background: var(--primary-cyan); box-shadow: 0 0 10px var(--primary-cyan); border-color: #002233; }
+.slider-label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: -5px;}
+.val-display { font-family: monospace; color: #fff; }
+
+/* === 响应式逻辑 (手机竖屏布局重构) === */
+@media (max-width: 900px) and (orientation: portrait) {
+    .dashboard { 
+        flex-direction: column;
+        overflow-y: auto;
+        padding-bottom: 50px;
+        justify-content: flex-start;
+        gap: 15px;
+    }
+    .panel-side, .panel-center { width: 100%; max-width: 100%; height: auto; }
+
+    /* 1. 视频流最上 */
+    #panel-video { order: 1; aspect-ratio: 4/3; flex-grow: 0; }
+    
+    /* 2. 云台控制中间 */
+    #panel-gimbal { order: 2; }
+    
+    /* 3. 移动控制(含速度)最下 */
+    #panel-drive { order: 3; flex-direction: column; gap: 15px; }
+
+    header { display: none; }
+    .control-group { width: 100%; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    header { display: none; }
+    .dashboard { padding: 5px; gap: 10px; }
+    .panel-side { width: 180px; gap: 10px; }
+    .d-pad { grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 40px); }
+    .btn { font-size: 18px; }
+    .control-group { padding: 10px; }
+}
+
+/* === 🔧 舵机校准模块 === */
+.calibration-panel .group-title {
+    align-items: center;
+}
+.calib-toggle-btn {
+    background: rgba(255, 174, 0, 0.1);
+    border: 1px solid var(--primary-amber);
+    color: var(--primary-amber);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+.calib-toggle-btn:hover {
+    background: rgba(255, 174, 0, 0.2);
+}
+.calib-toggle-btn.active {
+    background: var(--primary-amber);
+    color: #000;
+    box-shadow: 0 0 10px rgba(255, 174, 0, 0.4);
+}
+.calib-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.calib-hint {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.6;
+}
+.calib-fine-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.calib-axis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.calib-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    width: 32px;
+    text-align: right;
+}
+.calib-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: #ccc;
+    width: 32px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.calib-btn:hover { border-color: var(--primary-cyan); color: var(--primary-cyan); }
+.calib-btn:active { background: var(--primary-cyan); color: #000; border-color: transparent; }
+.calib-current {
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-cyan);
+    min-width: 40px;
+    text-align: center;
+}
+.calib-center-btn {
+    background: rgba(0, 242, 255, 0.08);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    color: var(--primary-cyan);
+    padding: 6px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-top: 2px;
+}
+.calib-center-btn:hover { background: rgba(0, 242, 255, 0.15); }
+.calib-center-btn:active { background: var(--primary-cyan); color: #000; }

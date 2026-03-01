@@ -1,0 +1,125 @@
+<!--
+ * @Author: WALT
+ * @Date: 2026-02-05 18:05:09
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>桌面监控机器人</title>
+    
+    <link rel="stylesheet" href="style.css">
+
+    <script src="socket.io.min.js"></script>
+    <script>if(typeof io === 'undefined') document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"><\/script>')</script>
+</head>
+<body>
+
+    <header>
+        <div class="app-title">桌面监控机器人</div>
+        <div class="status-badge">
+            <div id="dot" class="dot"></div>
+            <span id="stat">Connecting...</span>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        
+        <section class="panel-side" id="panel-drive">
+            <div class="control-group">
+                <div class="group-title">
+                    <span>Drive Speed</span>
+                    <span id="speed-val" class="val-display" style="color:var(--primary-amber)">150</span>
+                </div>
+                <input class="slider-speed" type="range" min="50" max="255" value="150" oninput="updateSpeed(this.value)">
+            </div>
+
+            <div class="control-group" style="align-items: center;">
+                <div class="d-pad">
+                    <button class="btn btn-u" 
+                        onmousedown="move('up')" ontouchstart="move('up')" 
+                        onmouseup="stop()" ontouchend="stop()" ontouchcancel="stop()" onmouseleave="stop()">▲</button>
+                    
+                    <button class="btn btn-l" 
+                        onmousedown="move('left')" ontouchstart="move('left')" 
+                        onmouseup="stop()" ontouchend="stop()" ontouchcancel="stop()" onmouseleave="stop()">◀</button>
+                    
+                    <button class="btn btn-stop" 
+                        onmousedown="stop()" ontouchstart="stop()">STOP</button>
+                    
+                    <button class="btn btn-r" 
+                        onmousedown="move('right')" ontouchstart="move('right')" 
+                        onmouseup="stop()" ontouchend="stop()" ontouchcancel="stop()" onmouseleave="stop()">▶</button>
+                    
+                    <button class="btn btn-d" 
+                        onmousedown="move('down')" ontouchstart="move('down')" 
+                        onmouseup="stop()" ontouchend="stop()" ontouchcancel="stop()" onmouseleave="stop()">▼</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-center" id="panel-video">
+            <div class="video-frame">
+                <iframe id="cam-frame" scrolling="no"></iframe>
+                <div class="hud-overlay" id="ai-text">SYSTEM READY</div>
+            </div>
+        </section>
+
+        <section class="panel-side" id="panel-gimbal">
+            <div class="control-group">
+                <div class="group-title">Camera Gimbal</div>
+                
+                <div class="slider-label">
+                    <span>PAN</span>
+                    <span class="val-display" id="pan-val">90°</span>
+                </div>
+                <input class="slider-gimbal" type="range" min="0" max="180" value="90" id="slider-pan" oninput="updateGimbal('pan', this.value, 'pan-val')">
+                
+                <div style="height: 15px;"></div> 
+
+                <div class="slider-label">
+                    <span>TILT</span>
+                    <span class="val-display" id="tilt-val">90°</span>
+                </div>
+                <input class="slider-gimbal" type="range" min="60" max="120" value="90" id="slider-tilt" oninput="updateGimbal('tilt', this.value, 'tilt-val')">
+            </div>
+
+            <!-- 🔧 舵机中位校准 -->
+            <div class="control-group calibration-panel">
+                <div class="group-title">
+                    <span>🔧 Servo Calibration</span>
+                    <button class="calib-toggle-btn" id="calibToggle" onclick="toggleCalibMode()">开始校准</button>
+                </div>
+                <div class="calib-body" id="calibBody">
+                    <div class="calib-hint">
+                        ⏲ 校准流程：点击“开始校准”→ 两轴自动回中 90° →<br>微调满意后安装舵机摇臂 → 点击“完成校准”
+                    </div>
+                    <div class="calib-fine-group" id="calibControls" style="display:none;">
+                        <div class="calib-axis">
+                            <span class="calib-label">PAN</span>
+                            <button class="calib-btn" onclick="calibNudge('pan', -5)">-5</button>
+                            <button class="calib-btn" onclick="calibNudge('pan', -1)">-1</button>
+                            <span class="calib-current" id="calib-pan-val">90°</span>
+                            <button class="calib-btn" onclick="calibNudge('pan', +1)">+1</button>
+                            <button class="calib-btn" onclick="calibNudge('pan', +5)">+5</button>
+                        </div>
+                        <div class="calib-axis">
+                            <span class="calib-label">TILT</span>
+                            <button class="calib-btn" onclick="calibNudge('tilt', -5)">-5</button>
+                            <button class="calib-btn" onclick="calibNudge('tilt', -1)">-1</button>
+                            <span class="calib-current" id="calib-tilt-val">90°</span>
+                            <button class="calib-btn" onclick="calibNudge('tilt', +1)">+1</button>
+                            <button class="calib-btn" onclick="calibNudge('tilt', +5)">+5</button>
+                        </div>
+                        <button class="calib-center-btn" onclick="calibCenter()">🎯 回中 90°</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
