@@ -1,3 +1,136 @@
+# 🤖 Household Pet Monitoring Robot
+
+## 1. Project Overview
+
+This project builds an FPV desktop monitoring robot based on the **Arduino Uno Q**. It features real-time video transmission, AI object recognition, 2-axis gimbal control, and speed-adjustable omnidirectional movement.
+
+**Core Highlights**:
+
+* **Web Full-Stack Architecture**: Separated HTML/CSS/JS front-end with a clear structure.
+* **Cyberpunk-Style Dashboard**: Responsive UI with a three-column layout on desktop, automatically optimized for mobile portrait mode.
+* **Hybrid Drive Underlayer**: Resolves Arduino timer conflicts while achieving servo image stabilization and smooth motor speed regulation.
+* **Offline Operation Support**: Localized front-end resources enable smooth control within the local area network (LAN) without external internet access.
+* **Automatic Reconnection Under Weak Network**: Built-in reconnection mechanism for network disconnections. Control can be automatically restored after mobile phone or robot WiFi disconnection, with real-time connection status indicated by the status light.
+
+---
+
+## 2. Project File Structure
+
+The project adopts a front-end and back-end separated file organization for easy maintenance:
+
+```text
+tracked_plz/
+├── sketch/
+│   └── sketch.ino       # Arduino underlying firmware (C++)
+├── python/
+│   └── main.py          # Python middle-tier logic (Socket.IO/Bridge/AI)
+├── assets/              # Front-end static resources
+│   ├── index.html       # Web page skeleton (Title: Desktop Monitoring Robot)
+│   ├── style.css        # Stylesheet (including portrait layout optimization)
+│   ├── script.js        # Interaction logic (Socket communication/debouncing)
+│   └── socket.io.min.js # Local dependency library (recommended to download and place here)
+└── README.md            # Project documentation
+```
+
+## 3. Hardware Architecture & Wiring
+
+| Component       | Model                | Arduino Pin | Description                                                  |
+| --------------- | -------------------- | ----------- | ------------------------------------------------------------ |
+| Main Controller | Arduino Uno Q        | -           | Based on STM32/Zephyr                                        |
+| Motor Driver    | A4950 (Dual Channel) | -           | Requires external 7.4V-12V lithium battery                   |
+| Left Motor      | Gear Motor           | D5, D6      | Controls left track                                          |
+| Right Motor     | Gear Motor           | D9, D10     | Controls right track (reverse correction implemented in the underlying layer) |
+| Gimbal Pan      | SG90 Servo           | D3          | Horizontal rotation (0-180°)                                 |
+| Gimbal Tilt     | SG90 Servo           | D11         | Vertical nodding (limited to 60-120°, midpoint at 90°)       |
+| Camera          | USB Cam              | USB Port    | Video stream port: 49124                                     |
+
+## 4. Software Architecture Analysis
+
+### 4.1 Front-End (Assets)
+
+- **Layout Logic (style.css)**: Desktop/tablet: Three-column layout (left: driving - middle: video - right: gimbal). Mobile portrait: Forced reordering to video (top) → gimbal (middle) → driving (bottom), conforming to one-handed operation habits.
+- **Interaction Logic (script.js)**: Safety mechanisms: Listens to `touchcancel` and `mouseleave` events to prevent car runaway when fingers slide out of buttons. Offline-first: Prioritizes loading local `socket.io.min.js` for operation in network-free environments. Weak network reconnection: Socket.IO automatic reconnection with real-time connection status display on the UI (ONLINE/Reconnecting/Reconnection Failed).
+
+### 4.2 Middle-Tier (Python)
+
+- **Speed Management**: Maintains a global `current_speed` variable to receive slider values (50-255) from the front-end.
+- **Command Routing**: Converts semantic commands (up, stop) from the front-end into underlying motor parameters.
+- **AI Vision**: Runs object detection in the background and pushes recognition results (e.g., [TARGET] person) in real-time via Socket.
+
+### 4.3 Underlayer (C++)
+
+Adopts a "Hybrid Drive Mode" to resolve resource conflicts:
+
+- **SG90 Servos**: Uses the hardware `<Servo.h>` library, occupying timers to ensure gimbal stability (no jitter).
+- **DC Motors**: Uses non-blocking software PWM (based on `micros()`), avoiding the failure of hardware PWM on D9/D10 pins and achieving smooth speed regulation.
+
+## 5. User Guide
+
+Access the console via a browser at `http://<Robot IP>:7000`.
+
+### 🎮 Driving Control (Left/Bottom Panel)
+
+- **Speed Slider (Amber)**: Drag to adjust the maximum motor speed (50-255). Recommended setting: 150 for indoor use, 255 for outdoor use.
+- **Direction Joystick**: Hold direction keys to move; release to stop immediately.
+- **STOP Button (Red)**: Located in the center of the directional pad, click to trigger emergency stop.
+
+### 📷 Vision System (Middle Panel)
+
+- **Video Stream**: Low-latency real-time transmission.
+- **HUD Display**: System status and AI-recognized target objects are displayed as text at the bottom.
+
+### 🔭 Gimbal Control (Right/Middle Panel)
+
+- **PAN (Cyan)**: Controls left/right rotation of the camera.
+- **TILT (Cyan)**: Controls up/down angle of the camera (0-180°).
+
+### 🔧 Servo Midpoint Calibration (For First-Time Installation)
+
+A dedicated calibration module is provided at the bottom of the gimbal control panel to ensure precise servo arm posture during installation:
+
+1. Connect the servos but do not tighten the arm fixing screws.
+2. Start the program and open the web console.
+3. Click "Start Calibration" → both axes automatically return to the 90° midpoint.
+4. Use the ±1/±5 degree fine-tuning buttons for precise adjustment.
+5. Once satisfied, fix the arm and tighten the screws.
+6. Click "Complete Calibration" to exit.
+
+## 6. Frequently Asked Questions (FAQ)
+
+**Q: Why is the interface messed up on mobile portrait mode?**  
+A: Ensure the latest `style.css` is referenced. The new stylesheet includes `@media` queries that automatically place the video at the top and buttons at the bottom.
+
+**Q: Why does only one side of the wheels spin?**  
+A: Check the battery level. The A4950 may fail to drive two motor channels simultaneously at low voltage.
+
+**Q: Can it be used without an internet connection?**  
+A: Yes. As long as `socket.io.min.js` is downloaded to the `assets` folder, the robot can be controlled via the router's LAN without internet access.
+
+**Q: What to do if the servos jitter?**  
+A: The current code has been optimized for anti-jitter. If jitter persists, check if the servos share power with the motors. It is recommended to power the servos separately or connect a filter capacitor in parallel.
+
+**Q: Can control be automatically restored after network disconnection?**  
+A: Yes. The system has a complete weak network reconnection mechanism:
+
+- **Mobile/PC disconnection and recovery**: Socket.IO on the browser side will automatically reconnect. The status light changes from green → flashing yellow (reconnecting) → green (recovered), with the number of reconnection attempts displayed during the process.
+- **Arduino UNO Q WiFi disconnection and recovery**: The same effect applies. The UNO Q hardware layer automatically reconnects to WiFi, and the browser side rebuilds communication automatically upon detecting connection recovery.
+- Default reconnection strategy: Up to 30 retry attempts, with an initial interval of 1 second, exponentially backing off to a maximum of 5 seconds. If reconnection fails after 30 attempts, a prompt "Reconnection failed, please refresh the page" is displayed.
+- Parameters such as `reconnectionAttempts` (number of retries), `reconnectionDelay` (initial delay), and `reconnectionDelayMax` (maximum delay) can be modified in the `io({...})` configuration at the top of `script.js`.
+
+## 7. Quick Start
+
+1. Upload the code in the `sketch/` directory to the Arduino board.
+
+2. Ensure the `assets/` directory contains `index.html`, `style.css`, and `script.js`.
+
+3. Run the Python service:
+
+   ```bash
+   python3 python/main.py
+   ```
+
+Enjoy your desktop monitoring robot!🚀
+
 <!--
  * @Author: WALT
  * @Date: 2026-02-05 18:26:41
